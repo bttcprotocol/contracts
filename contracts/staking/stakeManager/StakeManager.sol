@@ -92,14 +92,14 @@ contract StakeManager is
         validatorShareFactory = ValidatorShareFactory(_validatorShareFactory);
         _transferOwnership(_owner);
 
-        WITHDRAWAL_DELAY = (2**13); // unit: epoch
+        WITHDRAWAL_DELAY = 80; // unit: epoch
         currentEpoch = 1;
-        dynasty = 886; // unit: epoch 50 days
+        dynasty = 80; // unit: epoch 50 days
         //set CHAIN_CHECKPOINT_REWARD[1], CHAIN_CHECKPOINT_REWARD[2]
         CHAIN_CHECKPOINT_REWARD[1] = 20188 * (10**18); // update via governance
         minDeposit = (10**27); // in ERC20 token
         minHeimdallFee = (10**18); // in ERC20 token
-        checkPointBlockInterval = 1024;
+        checkPointBlockInterval = 5120;
         signerUpdateLimit = 100;
 
         validatorThreshold = 7; //128
@@ -506,8 +506,10 @@ contract StakeManager is
         _updateRewards(validatorId);
 
         if (stakeRewards) {
-            amount = amount.add(validators[validatorId].reward).sub(INITIALIZED_AMOUNT);
+            uint256 addReward = validators[validatorId].reward.sub(INITIALIZED_AMOUNT);
+            amount = amount.add(addReward);
             validators[validatorId].reward = INITIALIZED_AMOUNT;
+            token.mint(address(this), addReward);
         }
 
         uint256 newTotalStaked = totalStaked.add(amount);

@@ -349,8 +349,8 @@ contract StakingInfo is Ownable {
     }
 
     function logChainRewardUpdate(uint256 chainId, uint256 newReward, uint256 oldReward)
-      public
-      onlyStakeManager
+        public
+        onlyStakeManager
     {
         emit ChainRewardUpdate(chainId, newReward, oldReward);
     }
