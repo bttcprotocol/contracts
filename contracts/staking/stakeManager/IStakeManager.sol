@@ -37,6 +37,7 @@ contract IStakeManager {
 
     function checkSignatures(
         uint256 blockInterval,
+        uint256 epoch,
         bytes32 voteHash,
         bytes32 stateRoot,
         address proposer,

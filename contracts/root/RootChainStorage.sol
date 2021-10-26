@@ -16,15 +16,6 @@ contract RootChainHeader {
     );
     // housekeeping event
     event ResetHeaderBlock(address indexed proposer, uint256 indexed headerBlockId);
-    event NewChain(
-        uint256 indexed rootChainId,
-        uint256 activationHeight,
-        uint256 txConfirmations,
-        address rootChainAddress,
-        address stateSenderAddress,
-        address stakingManagerAddress,
-        address stakingInfoAddress
-    );
     struct HeaderBlock {
         bytes32 root;
         uint256 start;
@@ -44,15 +35,4 @@ contract RootChainStorage is ProxyStorage, RootChainHeader, ChainIdMixin {
     uint256 internal _blockDepositId = 1;
     mapping(uint256 => HeaderBlock) public headerBlocks;
     Registry internal registry;
-    struct ChainInfo {
-        uint256 rootChainId;
-        uint256 activationHeight;
-        uint256 txConfirmations;
-        address rootChainAddress;
-        address stateSenderAddress;
-        address stakingManagerAddress;
-        address stakingInfoAddress;
-        uint256 timeStamp;
-    }
-    mapping(uint256 => ChainInfo) public chainMap;
 }

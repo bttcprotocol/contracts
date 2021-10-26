@@ -93,5 +93,4 @@ contract StakeManagerStorage is GovernanceLockable, RootChainable {
     mapping(uint256 => uint256) public latestSignerUpdateEpoch;
 
     uint256 public totalHeimdallFee;
-    mapping(uint256 => uint256) public currentHeaderBlockId;
 }

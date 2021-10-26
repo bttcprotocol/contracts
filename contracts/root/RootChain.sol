@@ -14,6 +14,15 @@ contract RootChain is RootChainStorage, IRootChain {
     using SafeMath for uint256;
     using RLPReader for bytes;
     using RLPReader for RLPReader.RLPItem;
+    struct ParameterData {
+        address proposer;
+        uint256 start;
+        uint256 end;
+        bytes32 rootHash;
+        bytes32 accountHash;
+        uint256 _borChainID;
+        uint256 epoch;
+    }
 
     modifier onlyDepositManager() {
         require(msg.sender == registry.getDepositManagerAddress(), "UNAUTHORIZED_DEPOSIT_MANAGER_ONLY");
@@ -25,29 +34,31 @@ contract RootChain is RootChainStorage, IRootChain {
     }
 
     function submitCheckpoint(bytes calldata data, uint[3][] calldata sigs) external {
-        (address proposer, uint256 start, uint256 end, bytes32 rootHash, bytes32 accountHash, uint256 _borChainID) = abi
-            .decode(data, (address, uint256, uint256, bytes32, bytes32, uint256));
-        require(CHAINID == _borChainID, "Invalid bor chain id");
+        ParameterData memory _parameterData;
+        (_parameterData.proposer, _parameterData.start, _parameterData.end, _parameterData.rootHash, _parameterData.accountHash, _parameterData._borChainID, _parameterData.epoch) = abi
+            .decode(data, (address, uint256, uint256, bytes32, bytes32, uint256, uint256));
+        require(CHAINID == _parameterData._borChainID, "Invalid bor chain id");
 
-        require(_buildHeaderBlock(proposer, start, end, rootHash), "INCORRECT_HEADER_DATA");
+        require(_buildHeaderBlock(_parameterData.proposer, _parameterData.start, _parameterData.end, _parameterData.rootHash), "INCORRECT_HEADER_DATA");
 
         // check if it is better to keep it in local storage instead
         IStakeManager stakeManager = IStakeManager(registry.getStakeManagerAddress());
         uint256 _reward = stakeManager.checkSignatures(
-            end.sub(start).add(1),
-            /**
-                prefix 01 to data
+            _parameterData.end.sub(_parameterData.start).add(1),
+            _parameterData.epoch,
+            /**  
+                prefix 01 to data 
                 01 represents positive vote on data and 00 is negative vote
                 malicious validator can try to send 2/3 on negative vote so 01 is appended
              */
             keccak256(abi.encodePacked(bytes(hex"01"), data)),
-            accountHash,
-            proposer,
+            _parameterData.accountHash,
+            _parameterData.proposer,
             sigs
         );
 
         require(_reward != 0, "Invalid checkpoint");
-        emit NewHeaderBlock(proposer, _nextHeaderBlock, _reward, start, end, rootHash);
+        emit NewHeaderBlock(_parameterData.proposer, _nextHeaderBlock, _reward, _parameterData.start, _parameterData.end, _parameterData.rootHash);
         _nextHeaderBlock = _nextHeaderBlock.add(MAX_DEPOSITS);
         _blockDepositId = 1;
     }
@@ -119,37 +130,5 @@ contract RootChain is RootChainStorage, IRootChain {
     // Housekeeping function. @todo remove later
     function setHeimdallId(string memory _heimdallId) public onlyOwner {
         heimdallId = keccak256(abi.encodePacked(_heimdallId));
-    }
-
-    function setChainInfo(
-        uint256 rootChainId,
-        uint256 activationHeight,
-        uint256 txConfirmations,
-        address rootChainAddress,
-        address stateSenderAddress,
-        address stakingManagerAddress,
-        address stakingInfoAddress,
-        uint256 timeStamp
-    ) public onlyOwner {
-        ChainInfo memory chainInfo = ChainInfo({
-            rootChainId: rootChainId,
-            activationHeight: activationHeight,
-            txConfirmations: txConfirmations,
-            rootChainAddress: rootChainAddress,
-            stateSenderAddress: stateSenderAddress,
-            stakingManagerAddress: stakingManagerAddress,
-            stakingInfoAddress: stakingInfoAddress,
-            timeStamp: timeStamp
-        });
-        chainMap[rootChainId] = chainInfo;
-        emit NewChain(
-            rootChainId,
-            activationHeight,
-            txConfirmations,
-            rootChainAddress,
-            stateSenderAddress,
-            stakingManagerAddress,
-            stakingInfoAddress
-        );
     }
 }

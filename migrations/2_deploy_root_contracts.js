@@ -174,10 +174,10 @@ module.exports = async function(deployer, network, accounts) {
     }
 
     const stakeManager = await deployer.deploy(StakeManager)
-    const stakeMangerProxy = await deployer.deploy(StakeManagerProxy, ZeroAddress)
+    const stakeManagerProxy = await deployer.deploy(StakeManagerProxy, ZeroAddress)
     const auctionImpl = await deployer.deploy(StakeManagerExtension)
-    await stakeMangerProxy.updateAndCall(
-      StakeManager.address,
+    await stakeManagerProxy.updateAndCall(
+      stakeManager.address,
       stakeManager.contract.methods.initialize(
         Registry.address,
         RootChainProxy.address,

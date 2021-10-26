@@ -116,9 +116,11 @@ contract StakingInfo is Ownable {
 
     /// @dev Emitted when validator confirms the auction bid and at the time of restaking in confirmAuctionBid() and restake().
     /// @param validatorId unique integer to identify a validator.
+    /// @param nonce to synchronize the events in heimdal.
     /// @param newAmount the updated stake amount.
     event StakeUpdate(
         uint256 indexed validatorId,
+        uint256 indexed nonce,
         uint256 indexed newAmount
     );
     event ClaimRewards(
@@ -171,12 +173,9 @@ contract StakingInfo is Ownable {
         uint256 indexed newCommissionRate,
         uint256 indexed oldCommissionRate
     );
-    event CheckpointSyncAck(
-        address indexed proposer,
-        uint256 indexed chainId,
-        uint256 indexed checkpointId,
-        uint256 start,
-        uint256 end
+    event StakeAck(
+        uint256 indexed validatorId,
+        uint256 indexed nonce
     );
 
     Registry public registry;
@@ -227,7 +226,13 @@ contract StakingInfo is Ownable {
         for (uint256 i = 0; i < validatorIds.length; ++i) {
             validatorNonce[validatorIds[i]] = nonces[i];
         }
-    } 
+    }
+
+    function getValidatorNonce(
+        uint256 validatorId
+    ) public onlyStakeManager returns (uint256) {
+        return validatorNonce[validatorId];
+    }
 
     function logStaked(
         address signer,
@@ -350,10 +355,10 @@ contract StakingInfo is Ownable {
         public
         StakeManagerOrValidatorContract(validatorId)
     {
-        // validatorNonce[validatorId] = validatorNonce[validatorId].add(1);
+        validatorNonce[validatorId] = validatorNonce[validatorId].add(1);
         emit StakeUpdate(
             validatorId,
-            // validatorNonce[validatorId],
+            validatorNonce[validatorId],
             totalValidatorStake(validatorId)
         );
     }
@@ -513,19 +518,11 @@ contract StakingInfo is Ownable {
         );
     }
 
-    function logCheckpointAck(
-        address proposer,
-        uint256 chainId,
-        uint256 checkpointId,
-        uint256 start,
-        uint256 end
-    ) public onlyStakeManager {
-        emit CheckpointSyncAck(
-            proposer,
-            chainId,
-            checkpointId,
-            start,
-            end
+    function logStakeAck(uint256 validatorId) public onlyStakeManager {
+        validatorNonce[validatorId] = validatorNonce[validatorId].add(1);
+        emit StakeAck(
+            validatorId,
+            validatorNonce[validatorId]
         );
     }
 }
