@@ -22,6 +22,7 @@ import {StakeManagerStorageExtension} from "./StakeManagerStorageExtension.sol";
 import {IGovernance} from "../../common/governance/IGovernance.sol";
 import {Initializable} from "../../common/mixin/Initializable.sol";
 import {StakeManagerExtension} from "./StakeManagerExtension.sol";
+import {IWBTT} from "../../common/tokens/IWBTT.sol";
 
 contract StakeManager is
     StakeManagerStorage,
@@ -85,19 +86,20 @@ contract StakeManager is
         governance = IGovernance(_governance);
         registry = _registry;
         rootChain = _rootchain;
-        token = IERC20(_token);
+        token = IWBTT(_token);
         NFTContract = StakingNFT(_NFTContract);
         logger = StakingInfo(_stakingLogger);
         validatorShareFactory = ValidatorShareFactory(_validatorShareFactory);
         _transferOwnership(_owner);
 
-        WITHDRAWAL_DELAY = 80; // unit: epoch
+        WITHDRAWAL_DELAY = (2**13); // unit: epoch
         currentEpoch = 1;
-        dynasty = 80; // unit: epoch 50 days
-        CHECKPOINT_REWARD = 20188 * (10**18); // update via governance
-        minDeposit = (10**18); // in ERC20 token
+        dynasty = 886; // unit: epoch 50 days
+        //set CHAIN_CHECKPOINT_REWARD[1], CHAIN_CHECKPOINT_REWARD[2]
+        CHAIN_CHECKPOINT_REWARD[1] = 20188 * (10**18); // update via governance
+        minDeposit = (10**27); // in ERC20 token
         minHeimdallFee = (10**18); // in ERC20 token
-        checkPointBlockInterval = 5120;
+        checkPointBlockInterval = 1024;
         signerUpdateLimit = 100;
 
         validatorThreshold = 7; //128
@@ -209,7 +211,7 @@ contract StakeManager is
 
     function setStakingToken(address _token) public onlyGovernance {
         require(_token != address(0x0));
-        token = IERC20(_token);
+        token = IWBTT(_token);
     }
 
     /**
@@ -226,11 +228,11 @@ contract StakeManager is
         checkPointBlockInterval = _blocks;
     }
 
-    function updateCheckpointReward(uint256 newReward) public onlyGovernance {
-        require(newReward != 0);
-        logger.logRewardUpdate(newReward, CHECKPOINT_REWARD);
-        CHECKPOINT_REWARD = newReward;
-    }
+  function updateChainCheckpointReward(uint256 chainId, uint256 newReward) public onlyGovernance {
+    require(newReward != 0);
+    logger.logChainRewardUpdate(chainId, newReward, CHAIN_CHECKPOINT_REWARD[chainId]);
+    CHAIN_CHECKPOINT_REWARD[chainId] = newReward;
+  }
 
     function updateCheckpointRewardParams(
         uint256 _rewardDecreasePerCheckpoint,
@@ -436,7 +438,8 @@ contract StakeManager is
                 Registry(registry).getSlashingManagerAddress() == msg.sender,
             "not allowed"
         );
-        return token.transfer(delegator, amount);
+        token.mint(delegator, amount);
+        return true;
     }
 
     function delegationDeposit(
@@ -582,6 +585,7 @@ contract StakeManager is
         uint256[3][] calldata sigs
     ) external onlyRootChain returns (uint256) {
         uint256[3][] memory siglist = sigs;
+        currentRewardChainId = 1;
         uint256 reward = _checkSignaturesAndIncreaseReward(blockInterval, voteHash, stateRoot, proposer, siglist);
         _finalizeCommit();
         return reward;
@@ -590,7 +594,9 @@ contract StakeManager is
     function submitCheckpointSync(bytes calldata data, uint[3][] calldata sigs) external {
         (address proposer, uint256 start, uint256 end, uint256 checkpointId, uint256 chainId) = abi
             .decode(data, (address, uint256, uint256, uint256, uint256));
-        require(currentHeaderBlockId[chainId] < checkpointId, "INCORRECT_HEADER_DATA");
+        require(currentHeaderBlockId[chainId].add(1) == checkpointId, "INCORRECT_HEADER_DATA");
+        currentRewardChainId = chainId;
+
         bytes32 voteHash = keccak256(abi.encodePacked(bytes(hex"01"), data));
         uint[3][] memory siglist = sigs;
         _checkSignaturesAndIncreaseReward(
@@ -785,7 +791,7 @@ contract StakeManager is
         // and then stakePower is 90% of currentValidatorSetTotalStake then final reward is 90% of R
 
         uint256 targetBlockInterval = checkPointBlockInterval;
-        uint256 ckpReward = CHECKPOINT_REWARD;
+        uint256 ckpReward = CHAIN_CHECKPOINT_REWARD[currentRewardChainId];
         uint256 fullIntervals = Math.min(blockInterval / targetBlockInterval, maxRewardedCheckpoints);
 
         // only apply to full checkpoints
@@ -1102,7 +1108,7 @@ contract StakeManager is
         totalRewardsLiquidated = totalRewardsLiquidated.add(reward);
         validators[validatorId].reward = INITIALIZED_AMOUNT;
         validators[validatorId].initialRewardPerStake = rewardPerStake;
-        _transferToken(validatorUser, reward);
+        token.mint(validatorUser, reward);
         logger.logClaimRewards(validatorId, reward, totalRewardsLiquidated);
     }
 
@@ -1254,4 +1260,9 @@ contract StakeManager is
             unstakeCtx.validatorIndex
         );
     }
+
+    function transferTokenOwnership(address newOwner) public onlyGovernance {
+        token.transferOwnership(newOwner);
+    }
+
 }

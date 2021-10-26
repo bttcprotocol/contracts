@@ -11,6 +11,6 @@ contract StakeManagerTest is StakeManager {
         address proposer,
         uint[3][] calldata sigs
     ) external onlyRootChain returns (uint256) {
-        return CHECKPOINT_REWARD; // for dummy tests return full reward
+        return CHAIN_CHECKPOINT_REWARD[1]; // for dummy tests return full reward
     }
 }

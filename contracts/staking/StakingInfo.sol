@@ -113,8 +113,10 @@ contract StakingInfo is Ownable {
     );
 
     event RewardUpdate(uint256 newReward, uint256 oldReward);
+    event ChainRewardUpdate(uint256 chainId, uint256 newReward, uint256 oldReward);
 
-    /// @dev Emitted when validator confirms the auction bid and at the time of restaking in confirmAuctionBid() and restake().
+
+  /// @dev Emitted when validator confirms the auction bid and at the time of restaking in confirmAuctionBid() and restake().
     /// @param validatorId unique integer to identify a validator.
     /// @param newAmount the updated stake amount.
     event StakeUpdate(
@@ -227,7 +229,7 @@ contract StakingInfo is Ownable {
         for (uint256 i = 0; i < validatorIds.length; ++i) {
             validatorNonce[validatorIds[i]] = nonces[i];
         }
-    } 
+    }
 
     function logStaked(
         address signer,
@@ -344,6 +346,13 @@ contract StakingInfo is Ownable {
         onlyStakeManager
     {
         emit RewardUpdate(newReward, oldReward);
+    }
+
+    function logChainRewardUpdate(uint256 chainId, uint256 newReward, uint256 oldReward)
+      public
+      onlyStakeManager
+    {
+        emit ChainRewardUpdate(chainId, newReward, oldReward);
     }
 
     function logStakeUpdate(uint256 validatorId)

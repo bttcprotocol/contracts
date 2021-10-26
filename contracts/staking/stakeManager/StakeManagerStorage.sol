@@ -8,6 +8,7 @@ import {RootChainable} from "../../common/mixin/RootChainable.sol";
 import {StakingInfo} from "../StakingInfo.sol";
 import {StakingNFT} from "./StakingNFT.sol";
 import {ValidatorShareFactory} from "../validatorShare/ValidatorShareFactory.sol";
+import {IWBTT} from "../../common/tokens/IWBTT.sol";
 
 contract StakeManagerStorage is GovernanceLockable, RootChainable {
     enum Status {Inactive, Active, Locked, Unstaked}
@@ -52,7 +53,7 @@ contract StakeManagerStorage is GovernanceLockable, RootChainable {
     uint256 internal constant INCORRECT_VALIDATOR_ID = 2**256 - 1;
     uint256 internal constant INITIALIZED_AMOUNT = 1;
 
-    IERC20 public token;
+    IWBTT public token;
     address public registry;
     StakingInfo public logger;
     StakingNFT public NFTContract;
@@ -62,7 +63,8 @@ contract StakeManagerStorage is GovernanceLockable, RootChainable {
 
     // genesis/governance variables
     uint256 public dynasty; // unit: epoch 50 days
-    uint256 public CHECKPOINT_REWARD; // update via governance
+    mapping(uint256 => uint256) public CHAIN_CHECKPOINT_REWARD; // update via governance
+    uint256 currentRewardChainId;
     uint256 public minDeposit; // in ERC20 token
     uint256 public minHeimdallFee; // in ERC20 token
     uint256 public checkPointBlockInterval;

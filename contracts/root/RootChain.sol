@@ -141,6 +141,7 @@ contract RootChain is RootChainStorage, IRootChain {
             stakingInfoAddress: stakingInfoAddress,
             timeStamp: timeStamp
         });
+        require(chainMap[rootChainId].rootChainId == 0, "rootChainId already exists");
         chainMap[rootChainId] = chainInfo;
         emit NewChain(
             rootChainId,
