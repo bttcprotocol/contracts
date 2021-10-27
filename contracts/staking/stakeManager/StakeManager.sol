@@ -438,8 +438,7 @@ contract StakeManager is
                 Registry(registry).getSlashingManagerAddress() == msg.sender,
             "not allowed"
         );
-        token.mint(delegator, amount);
-        return true;
+        return token.transfer(delegator, amount);
     }
 
     function delegationDeposit(
@@ -506,10 +505,8 @@ contract StakeManager is
         _updateRewards(validatorId);
 
         if (stakeRewards) {
-            uint256 addReward = validators[validatorId].reward.sub(INITIALIZED_AMOUNT);
-            amount = amount.add(addReward);
+            amount = amount.add(validators[validatorId].reward).sub(INITIALIZED_AMOUNT);
             validators[validatorId].reward = INITIALIZED_AMOUNT;
-            token.mint(address(this), addReward);
         }
 
         uint256 newTotalStaked = totalStaked.add(amount);
@@ -847,6 +844,8 @@ contract StakeManager is
         // require(signedStakePower >= currentTotalStake.mul(2).div(3).add(1), "2/3+1 non-majority!");
 
         uint256 reward = _calculateCheckpointReward(blockInterval, signedStakePower, currentTotalStake);
+        // mint rewards
+        token.mint(address(this), reward);
 
         uint256 _proposerBonus = reward.mul(proposerBonus).div(MAX_PROPOSER_BONUS);
         uint256 proposerId = signerToValidator[proposer];
@@ -1110,7 +1109,7 @@ contract StakeManager is
         totalRewardsLiquidated = totalRewardsLiquidated.add(reward);
         validators[validatorId].reward = INITIALIZED_AMOUNT;
         validators[validatorId].initialRewardPerStake = rewardPerStake;
-        token.mint(validatorUser, reward);
+        _transferToken(validatorUser, reward);
         logger.logClaimRewards(validatorId, reward, totalRewardsLiquidated);
     }
 
