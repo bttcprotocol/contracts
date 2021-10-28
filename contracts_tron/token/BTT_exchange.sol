@@ -229,7 +229,7 @@ contract TokenExchange is Ownable {
     ITRC20 public targetToken;
     uint256 public  MUL = 1e15;
 
-    address payable public blackHole = address(0x01);
+    address payable public blackHole = address(0x0);
 
     constructor(trcToken _sourceToken, ITRC20 _targetToken) public {
         sourceToken = _sourceToken;
