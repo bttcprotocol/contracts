@@ -842,8 +842,7 @@ contract StakeManager is
 
         _removeSigner(validators[validatorId].signer);
 
-        uint256 targetEpoch = deactivationEpoch <= currentEpoch ? 0 : deactivationEpoch;
-        updateTimeline(-(int256(amount) + delegationAmount), -1, targetEpoch);
+        updateTimeline(-(int256(amount) + delegationAmount), -1, 0);
 
         uint256 newTotalStaked = totalStaked.sub(amount + validators[validatorId].delegatedAmount);
         totalStaked = newTotalStaked;
