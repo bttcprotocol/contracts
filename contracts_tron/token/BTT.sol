@@ -11,6 +11,24 @@ interface ITRC20 {
   event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
+library SafeMath {
+
+    function add(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a, errorMessage);
+
+        return c;
+    }
+
+    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b <= a, errorMessage);
+        uint256 c = a - b;
+
+        return c;
+    }   
+    
+}
+
 contract Context {
 
     constructor () internal { }
@@ -29,7 +47,6 @@ contract Ownable is Context {
     address private _owner;
     address private _admin;
 
-    bool public isPausedExchange = false;
     bool public isPausedMint = false;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -57,11 +74,6 @@ contract Ownable is Context {
 
     modifier onlyAdmin() {
         require(isAdmin(), "Ownable: caller is not the admin");
-        _;
-    }
-
-    modifier whenAllowExchange() {
-        require(!isPausedExchange, "Ownable: Exchange already paused");
         _;
     }
 
@@ -108,16 +120,13 @@ contract Ownable is Context {
         _admin = newAdmin;
     }
 
-    function setPauseExchange(bool _pause) external onlyAdmin {
-        isPausedExchange = _pause;
-    }
-
     function setPauseMint(bool _pause) external onlyAdmin {
         isPausedMint = _pause;
     }
 }
 
 contract BTT is ITRC20,Ownable {
+    using SafeMath for uint256;
     string public name = "BitTorrent";
     string public symbol = "BTT";
     uint8  public decimals = 18;
@@ -127,7 +136,7 @@ contract BTT is ITRC20,Ownable {
     mapping(address => mapping(address => uint)) private  allowance_;
 
     constructor(address fund) public {
-        totalSupply_ = 9900*1e8*1e18*1e3;
+        totalSupply_ = 9900 * 1e8 * 1e18 * 1e3;
         balanceOf_[fund] = totalSupply_;
         emit Transfer(address(0x00), fund, totalSupply_);
     }
@@ -151,7 +160,7 @@ contract BTT is ITRC20,Ownable {
     }
 
     function approve(address guy) public returns (bool) {
-        return approve(guy, uint256(- 1));
+        return approve(guy, uint256(-1));
     }
 
     function transfer(address dst, uint256 sad) public returns (bool) {
@@ -163,23 +172,22 @@ contract BTT is ITRC20,Ownable {
     {
         require(balanceOf_[src] >= sad, "src balance not enough");
 
-        if (src != msg.sender && allowance_[src][msg.sender] != uint256(- 1)) {
+        if (src != msg.sender && allowance_[src][msg.sender] != uint256(-1)) {
             require(allowance_[src][msg.sender] >= sad, "src allowance is not enough");
-            allowance_[src][msg.sender] -= sad;
+            allowance_[src][msg.sender] = allowance_[src][msg.sender].sub(sad, "allowance subtraction overflow") ;
         }
-        balanceOf_[src] -= sad;
-        balanceOf_[dst] += sad;
+        balanceOf_[src] = balanceOf_[src].sub(sad, "from balance subtraction overflow");
+        balanceOf_[dst] = balanceOf_[dst].add(sad, "to balance addition overflow") ;
 
         emit Transfer(src, dst, sad);
         return true;
     }
+    
     function _mint(address account, uint256 value) internal {
         require(account != address(0));
 
-        // totalSupply_ = totalSupply_.add(value);
-        // balanceOf_[account] = balanceOf_[account].add(value);
-        totalSupply_ += value;
-        balanceOf_[account] += value;
+        totalSupply_ = totalSupply_.add(value, "totalSupply addition overflow");
+        balanceOf_[account] = balanceOf_[account].add(value, "to balance addition overflow");
         emit Transfer(address(0), account, value);
     }
 
