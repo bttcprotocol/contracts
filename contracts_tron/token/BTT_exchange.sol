@@ -238,7 +238,7 @@ contract TokenExchange is Ownable {
 
     function exchange() payable public {
         require(canExchange, "TokenExchange: can not boom right now");
-        require(msg.tokenId == sourceToken, "TokenExchange: error tokenId");
+        require(msg.tokenid == sourceToken, "TokenExchange: error tokenId");
 
         blackHole.transferToken(msg.tokenvalue, sourceToken);
         uint256 sendAmount = msg.tokenvalue.mul(MUL);
