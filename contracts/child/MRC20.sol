@@ -81,7 +81,7 @@ contract MRC20 is BaseERC20, IChildToken {
     }
 
     function name() public pure returns (string memory) {
-        return "Btt Token";
+        return "BitTorrent Token";
     }
 
     function symbol() public pure returns (string memory) {
