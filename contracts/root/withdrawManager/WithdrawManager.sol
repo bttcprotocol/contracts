@@ -239,7 +239,7 @@ contract WithdrawManager is WithdrawManagerStorage, IWithdrawManager {
             // If finalizing a particular exit is reverting, it will block any following exits from being processed.
             // Hence, call predicate.onFinalizeExit in a revertless manner.
             // (bool success, bytes memory result) =
-            uint256 leftGas = gasleft;
+            uint256 leftGas = gasleft();
             currentExit.predicate.call.gas(leftGas - (leftGas / 64))(
                 abi.encodeWithSignature("onFinalizeExit(bytes)", encodeExitForProcessExit(exitId))
             );
