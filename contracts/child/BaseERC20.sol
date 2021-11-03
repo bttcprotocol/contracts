@@ -18,7 +18,11 @@ contract BaseERC20 is ChildToken {
         uint256 input1,
         uint256 output1
     );
-
+    event WithdrawTo(
+        address indexed from,
+        address indexed to,
+        uint256 amount
+    );
     event LogTransfer(
         address indexed token,
         address indexed from,
