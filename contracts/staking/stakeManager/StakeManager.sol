@@ -97,7 +97,7 @@ contract StakeManager is
         dynasty = 80; // unit: epoch 50 days
         //set CHAIN_CHECKPOINT_REWARD[1], CHAIN_CHECKPOINT_REWARD[2]
         CHAIN_CHECKPOINT_REWARD[1] = 482_191_780 * (10**18); // update via governance
-        CHAIN_CHECKPOINT_REWARD[2] = 2_812_785_000 * (10**18); // update via governance
+        CHAIN_CHECKPOINT_REWARD[2] = 2_250_228_311 * (10**18); // update via governance
         CHAIN_CHECKPOINT_REWARD[3] = 482_191_780 * (10**18); // update via governance
         minDeposit = 1000 * (10**27); // in ERC20 token
         minHeimdallFee = 1000 * (10**18); // in ERC20 token
