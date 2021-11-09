@@ -251,16 +251,6 @@ contract TokenExchange is Ownable {
        exchange();
     }
 
-
-    function setMUL(uint256 _MUL) onlyOwner external {
-        MUL = _MUL;
-    }
-
-    function setBlackHole(address payable _blackHole) onlyOwner external {
-        require(_blackHole != address(0), "TokenExchange: can not setBlackHole to zero address");
-        blackHole = _blackHole;
-    }
-
     function stopExchange() onlyOwner external {
         canExchange = false;
     }
