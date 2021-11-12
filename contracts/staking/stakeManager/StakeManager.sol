@@ -848,6 +848,7 @@ contract StakeManager is
         uint256 reward = _calculateCheckpointReward(blockInterval, signedStakePower, currentTotalStake);
         // mint rewards
         token.mint(address(this), reward);
+        totalRewards = totalRewards + reward;
 
         uint256 _proposerBonus = reward.mul(proposerBonus).div(MAX_PROPOSER_BONUS);
         uint256 proposerId = signerToValidator[proposer];
