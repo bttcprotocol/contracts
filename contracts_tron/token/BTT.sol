@@ -1,14 +1,14 @@
 pragma solidity ^0.5.8;
 
 interface ITRC20 {
-  function transfer(address to, uint256 value) external returns (bool);
-  function approve(address spender, uint256 value) external returns (bool);
-  function transferFrom(address from, address to, uint256 value) external returns (bool);
-  function totalSupply() external view returns (uint256);
-  function balanceOf(address who) external view returns (uint256);
-  function allowance(address owner, address spender) external view returns (uint256);
-  event Transfer(address indexed from, address indexed to, uint256 value);
-  event Approval(address indexed owner, address indexed spender, uint256 value);
+    function transfer(address to, uint256 value) external returns (bool);
+    function approve(address spender, uint256 value) external returns (bool);
+    function transferFrom(address from, address to, uint256 value) external returns (bool);
+    function totalSupply() external view returns (uint256);
+    function balanceOf(address who) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
 library SafeMath {
@@ -25,8 +25,8 @@ library SafeMath {
         uint256 c = a - b;
 
         return c;
-    }   
-    
+    }
+
 }
 
 contract Context {
@@ -45,45 +45,21 @@ contract Context {
 
 contract Ownable is Context {
     address private _owner;
-    address private _admin;
-
-    bool public isPausedMint = false;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-    event AdminTransferred(address indexed previousAdmin, address indexed newAdmin);
 
     constructor () internal {
         _owner = _msgSender();
-        _admin = _msgSender();
         emit OwnershipTransferred(address(0), _owner);
-        emit AdminTransferred(address(0), _admin);
     }
 
     function owner() public view returns (address) {
         return _owner;
     }
 
-    function admin() public view returns (address) {
-        return _admin;
-    }
-
     modifier onlyOwner() {
         require(isOwner(), "Ownable: caller is not the owner");
         _;
-    }
-
-    modifier onlyAdmin() {
-        require(isAdmin(), "Ownable: caller is not the admin");
-        _;
-    }
-
-    modifier whenAllowMint() {
-        require(!isPausedMint, "Ownable: Mint already paused");
-        _;
-    }
-
-    function isAdmin() public view returns (bool) {
-        return _msgSender() == _admin;
     }
 
     function isOwner() public view returns (bool) {
@@ -95,17 +71,8 @@ contract Ownable is Context {
         _owner = address(0);
     }
 
-    function renounceAdmin() public onlyAdmin {
-        emit AdminTransferred(_admin, address(0));
-        _admin = address(0);
-    }
-
     function transferOwnership(address newOwner) public onlyOwner {
         _transferOwnership(newOwner);
-    }
-
-    function transferAdmin(address newAdmin) public onlyAdmin {
-        _transferAdmin(newAdmin);
     }
 
     function _transferOwnership(address newOwner) internal {
@@ -114,15 +81,6 @@ contract Ownable is Context {
         _owner = newOwner;
     }
 
-    function _transferAdmin(address newAdmin) internal {
-        require(newAdmin != address(0), "Ownable: newAdmin is the zero address");
-        emit AdminTransferred(_admin, newAdmin);
-        _admin = newAdmin;
-    }
-
-    function setPauseMint(bool _pause) external onlyAdmin {
-        isPausedMint = _pause;
-    }
 }
 
 contract BTT is ITRC20,Ownable {
@@ -159,10 +117,6 @@ contract BTT is ITRC20,Ownable {
         return true;
     }
 
-    function approve(address guy) public returns (bool) {
-        return approve(guy, uint256(-1));
-    }
-
     function transfer(address dst, uint256 sad) public returns (bool) {
         return transferFrom(msg.sender, dst, sad);
     }
@@ -182,16 +136,17 @@ contract BTT is ITRC20,Ownable {
         emit Transfer(src, dst, sad);
         return true;
     }
-    
+
     function _mint(address account, uint256 value) internal {
-        require(account != address(0));
+        require(account != address(0), "account is zero");
+        require(value <= 32146118720 * 1e18, "mint value is too large");
 
         totalSupply_ = totalSupply_.add(value, "totalSupply addition overflow");
         balanceOf_[account] = balanceOf_[account].add(value, "to balance addition overflow");
         emit Transfer(address(0), account, value);
     }
 
-    function mint(address account, uint256 value) public onlyOwner whenAllowMint{
+    function mint(address account, uint256 value) public onlyOwner {
         return _mint(account, value);
     }
 
