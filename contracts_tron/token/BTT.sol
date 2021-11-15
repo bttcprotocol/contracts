@@ -139,7 +139,7 @@ contract BTT is ITRC20,Ownable {
 
     function _mint(address account, uint256 value) internal {
         require(account != address(0), "account is zero");
-        require(value <= 321461187200 * 1e18, "mint value is too large");
+        require(value <= 32146118720 * 1e18, "mint value is too large");
 
         totalSupply_ = totalSupply_.add(value, "totalSupply addition overflow");
         balanceOf_[account] = balanceOf_[account].add(value, "to balance addition overflow");
