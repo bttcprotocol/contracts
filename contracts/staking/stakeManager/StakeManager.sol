@@ -100,7 +100,7 @@ contract StakeManager is
         CHAIN_CHECKPOINT_REWARD[2] = 2_250_228_311 * (10**18); // update via governance
         CHAIN_CHECKPOINT_REWARD[3] = 482_191_780 * (10**18); // update via governance
         minDeposit = 1000 * (10**27); // in ERC20 token
-        minHeimdallFee = 1000 * (10**18); // in ERC20 token
+        minHeimdallFee = 100000 * (10**18); // in ERC20 token
         checkPointBlockInterval = 1024;
         signerUpdateLimit = 100;
 
