@@ -29,69 +29,15 @@ library SafeMath {
 
 }
 
-contract Context {
-
-    constructor () internal { }
-
-    function _msgSender() internal view returns (address payable) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view returns (bytes memory) {
-        this;
-        return msg.data;
-    }
-}
-
-contract Ownable is Context {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    constructor () internal {
-        _owner = _msgSender();
-        emit OwnershipTransferred(address(0), _owner);
-    }
-
-    function owner() public view returns (address) {
-        return _owner;
-    }
-
-    modifier onlyOwner() {
-        require(isOwner(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    function isOwner() public view returns (bool) {
-        return _msgSender() == _owner;
-    }
-
-    function renounceOwnership() public onlyOwner {
-        emit OwnershipTransferred(_owner, address(0));
-        _owner = address(0);
-    }
-
-    function transferOwnership(address newOwner) public onlyOwner {
-        _transferOwnership(newOwner);
-    }
-
-    function _transferOwnership(address newOwner) internal {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        emit OwnershipTransferred(_owner, newOwner);
-        _owner = newOwner;
-    }
-
-}
-
-contract BTT is ITRC20,Ownable {
+contract BTT is ITRC20 {
     using SafeMath for uint256;
-    string public name = "BitTorrent";
-    string public symbol = "BTT";
-    uint8  public decimals = 18;
+    string constant public name = "BitTorrent";
+    string constant public symbol = "BTT";
+    uint8 constant  public decimals = 18;
 
     uint256 private totalSupply_;
     mapping(address => uint256) private  balanceOf_;
-    mapping(address => mapping(address => uint)) private  allowance_;
+    mapping(address => mapping(address => uint256)) private  allowance_;
 
     constructor(address fund) public {
         totalSupply_ = 9900 * 1e8 * 1e18 * 1e3;
@@ -137,19 +83,21 @@ contract BTT is ITRC20,Ownable {
         return true;
     }
 
-    function _mint(address account, uint256 value) internal {
-        require(account != address(0), "account is zero");
-        require(value <= 32146118720 * 1e18, "mint value is too large");
+    function increaseAllowance(address guy, uint256 addedValue) public returns (bool) {
+        require(guy != address(0));
 
-        totalSupply_ = totalSupply_.add(value, "totalSupply addition overflow");
-        balanceOf_[account] = balanceOf_[account].add(value, "to balance addition overflow");
-        emit Transfer(address(0), account, value);
+        allowance_[msg.sender][guy] = allowance_[msg.sender][guy].add(addedValue, "allowance addition overflow") ;
+        emit Approval(msg.sender, guy, allowance_[msg.sender][guy]);
+        return true;
     }
 
-    function mint(address account, uint256 value) public onlyOwner {
-        return _mint(account, value);
-    }
+    function decreaseAllowance(address guy, uint256 subtractedValue) public returns (bool) {
+        require(guy != address(0));
 
+        allowance_[msg.sender][guy] = allowance_[msg.sender][guy].sub(subtractedValue, "allowance subtraction overflow") ;
+        emit Approval(msg.sender, guy, allowance_[msg.sender][guy]);
+        return true;
+    }
 }
 
 
