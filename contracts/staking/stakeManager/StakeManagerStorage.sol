@@ -8,7 +8,6 @@ import {RootChainable} from "../../common/mixin/RootChainable.sol";
 import {StakingInfo} from "../StakingInfo.sol";
 import {StakingNFT} from "./StakingNFT.sol";
 import {ValidatorShareFactory} from "../validatorShare/ValidatorShareFactory.sol";
-import {IWBTT} from "../../common/tokens/IWBTT.sol";
 
 contract StakeManagerStorage is GovernanceLockable, RootChainable {
     enum Status {Inactive, Active, Locked, Unstaked}
@@ -53,7 +52,7 @@ contract StakeManagerStorage is GovernanceLockable, RootChainable {
     uint256 internal constant INCORRECT_VALIDATOR_ID = 2**256 - 1;
     uint256 internal constant INITIALIZED_AMOUNT = 1;
 
-    IWBTT public token;
+    IERC20 public token;
     address public registry;
     StakingInfo public logger;
     StakingNFT public NFTContract;
