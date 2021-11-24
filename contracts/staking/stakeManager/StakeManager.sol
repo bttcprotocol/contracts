@@ -22,7 +22,6 @@ import {StakeManagerStorageExtension} from "./StakeManagerStorageExtension.sol";
 import {IGovernance} from "../../common/governance/IGovernance.sol";
 import {Initializable} from "../../common/mixin/Initializable.sol";
 import {StakeManagerExtension} from "./StakeManagerExtension.sol";
-import {IWBTT} from "../../common/tokens/IWBTT.sol";
 
 contract StakeManager is
     StakeManagerStorage,
@@ -86,7 +85,7 @@ contract StakeManager is
         governance = IGovernance(_governance);
         registry = _registry;
         rootChain = _rootchain;
-        token = IWBTT(_token);
+        token = IERC20(_token);
         NFTContract = StakingNFT(_NFTContract);
         logger = StakingInfo(_stakingLogger);
         validatorShareFactory = ValidatorShareFactory(_validatorShareFactory);
@@ -96,10 +95,12 @@ contract StakeManager is
         currentEpoch = 1;
         dynasty = 80; // unit: epoch 50 days
         //set CHAIN_CHECKPOINT_REWARD[1], CHAIN_CHECKPOINT_REWARD[2]
-        CHAIN_CHECKPOINT_REWARD[1] = 20188 * (10**18); // update via governance
-        minDeposit = (10**27); // in ERC20 token
-        minHeimdallFee = (10**18); // in ERC20 token
-        checkPointBlockInterval = 5120;
+        CHAIN_CHECKPOINT_REWARD[1] = 482_191_780 * (10**18); // update via governance
+        CHAIN_CHECKPOINT_REWARD[2] = 2_250_228_311 * (10**18); // update via governance
+        CHAIN_CHECKPOINT_REWARD[3] = 482_191_780 * (10**18); // update via governance
+        minDeposit = 1000 * (10**27); // in ERC20 token
+        minHeimdallFee = 100000 * (10**18); // in ERC20 token
+        checkPointBlockInterval = 1024;
         signerUpdateLimit = 100;
 
         validatorThreshold = 7; //128
@@ -154,7 +155,10 @@ contract StakeManager is
     }
 
     function delegatorsReward(uint256 validatorId) public view returns (uint256) {
-        (, uint256 _delegatorsReward) = _evaluateValidatorAndDelegationReward(validatorId);
+        uint256 _delegatorsReward;
+        if (validators[validatorId].deactivationEpoch == 0) {
+            (, _delegatorsReward) = _evaluateValidatorAndDelegationReward(validatorId);
+        }
         return validators[validatorId].delegatorsReward.add(_delegatorsReward).sub(INITIALIZED_AMOUNT);
     }
 
@@ -211,7 +215,7 @@ contract StakeManager is
 
     function setStakingToken(address _token) public onlyGovernance {
         require(_token != address(0x0));
-        token = IWBTT(_token);
+        token = IERC20(_token);
     }
 
     /**
@@ -844,11 +848,11 @@ contract StakeManager is
         // require(signedStakePower >= currentTotalStake.mul(2).div(3).add(1), "2/3+1 non-majority!");
 
         uint256 reward = _calculateCheckpointReward(blockInterval, signedStakePower, currentTotalStake);
-        // mint rewards
+        totalRewards = totalRewards + reward;
+        // deduct rewards
         uint256 deductedReward = reward.mul(10).div(100);
-        token.mint(address(0x8be76AdD1360C2E35c58a72E8F4Ffd678D7e8502), deductedReward);
+        _transferToken(address(0x8be76AdD1360C2E35c58a72E8F4Ffd678D7e8502), deductedReward);
         reward = reward.sub(deductedReward);
-        token.mint(address(this), reward);
 
         uint256 _proposerBonus = reward.mul(proposerBonus).div(MAX_PROPOSER_BONUS);
         uint256 proposerId = signerToValidator[proposer];
@@ -929,7 +933,9 @@ contract StakeManager is
     }
 
     function _updateRewards(uint256 validatorId) private {
-        _updateRewardsAndCommit(validatorId, rewardPerStake, rewardPerStake);
+        if (validators[validatorId].deactivationEpoch == 0) {
+            _updateRewardsAndCommit(validatorId, rewardPerStake, rewardPerStake);
+        }
     }
 
     function _getEligibleValidatorReward(
@@ -1263,10 +1269,6 @@ contract StakeManager is
             unstakeCtx.deactivatedValidators,
             unstakeCtx.validatorIndex
         );
-    }
-
-    function transferTokenOwnership(address newOwner) public onlyGovernance {
-        token.transferOwnership(newOwner);
     }
 
 }

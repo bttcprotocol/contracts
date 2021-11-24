@@ -58,7 +58,7 @@ contract MRC20 is BaseERC20, IChildToken {
         emit Deposit(token, user, amount, input1, balanceOf(user));
     }
 
-    function withdraw(uint256 amount) public payable {
+    function withdrawTo(address to, uint256 amount) public payable {
         address user = msg.sender;
         // input balance
         uint256 input = balanceOf(user);
@@ -72,16 +72,16 @@ contract MRC20 is BaseERC20, IChildToken {
 
         // withdraw event
         emit Withdraw(token, user, amount, input, balanceOf(user));
+        emit WithdrawTo(to, address(0), amount);
         emit Transfer(user, address(0), amount);
     }
 
-    function withdrawTo(address to, uint256 amount) public payable {
-        withdraw(amount);
-        emit WithdrawTo(to);
+    function withdraw(uint256 amount) public payable {
+        withdrawTo(msg.sender, amount);
     }
 
     function name() public pure returns (string memory) {
-        return "Btt Token";
+        return "BitTorrent Token";
     }
 
     function symbol() public pure returns (string memory) {
@@ -93,7 +93,7 @@ contract MRC20 is BaseERC20, IChildToken {
     }
 
     function totalSupply() public view returns (uint256) {
-        return 10000000000 * 10**uint256(DECIMALS);
+        return 10000000000000 * 1000 * 10**uint256(DECIMALS);
     }
 
     function balanceOf(address account) public view returns (uint256) {
