@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 
 program.version("0.0.1");
-program.option("-c, --bor-chain-id <bor-chain-id>", "Bor chain id", "15001");
+program.option("-c, --bttc-chain-id <bttc-chain-id>", "Bttc chain id", "15001");
 program.parse(process.argv);
 
 //joining path of directory
