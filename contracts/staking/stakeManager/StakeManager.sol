@@ -22,7 +22,6 @@ import {StakeManagerStorageExtension} from "./StakeManagerStorageExtension.sol";
 import {IGovernance} from "../../common/governance/IGovernance.sol";
 import {Initializable} from "../../common/mixin/Initializable.sol";
 import {StakeManagerExtension} from "./StakeManagerExtension.sol";
-import {IWBTT} from "../../common/tokens/IWBTT.sol";
 
 contract StakeManager is
     StakeManagerStorage,
@@ -86,7 +85,7 @@ contract StakeManager is
         governance = IGovernance(_governance);
         registry = _registry;
         rootChain = _rootchain;
-        token = IWBTT(_token);
+        token = IERC20(_token);
         NFTContract = StakingNFT(_NFTContract);
         logger = StakingInfo(_stakingLogger);
         validatorShareFactory = ValidatorShareFactory(_validatorShareFactory);
@@ -216,7 +215,7 @@ contract StakeManager is
 
     function setStakingToken(address _token) public onlyGovernance {
         require(_token != address(0x0));
-        token = IWBTT(_token);
+        token = IERC20(_token);
     }
 
     /**
@@ -849,8 +848,6 @@ contract StakeManager is
         // require(signedStakePower >= currentTotalStake.mul(2).div(3).add(1), "2/3+1 non-majority!");
 
         uint256 reward = _calculateCheckpointReward(blockInterval, signedStakePower, currentTotalStake);
-        // mint rewards
-        token.mint(address(this), reward);
         totalRewards = totalRewards + reward;
 
         uint256 _proposerBonus = reward.mul(proposerBonus).div(MAX_PROPOSER_BONUS);
@@ -1268,10 +1265,6 @@ contract StakeManager is
             unstakeCtx.deactivatedValidators,
             unstakeCtx.validatorIndex
         );
-    }
-
-    function transferTokenOwnership(address newOwner) public onlyGovernance {
-        token.transferOwnership(newOwner);
     }
 
 }
