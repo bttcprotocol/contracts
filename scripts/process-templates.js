@@ -20,14 +20,14 @@ glob(directoryPath, function (err, files) {
   //listing all files using forEach
   files.forEach(function (file) {
     // Do whatever you want to do with the file
-    const borChainIdHex = parseInt(program.borChainId, 10)
+    const bttcChainIdHex = parseInt(program.bttcChainId, 10)
       .toString(16)
       .toUpperCase();
 
     const data = {
-      borChainId: program.borChainId,
-      borChainIdHex:
-        borChainIdHex.length % 2 !== 0 ? `0${borChainIdHex}` : borChainIdHex,
+      bttcChainId: program.bttcChainId,
+      bttcChainIdHex:
+        bttcChainIdHex.length % 2 !== 0 ? `0${bttcChainIdHex}` : bttcChainIdHex,
     };
 
     const templateString = fs.readFileSync(file).toString();
