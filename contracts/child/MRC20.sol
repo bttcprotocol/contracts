@@ -1,6 +1,6 @@
 pragma solidity ^0.5.11;
 
-import "./BaseERC20.sol";
+import "./BaseERC20NoSig.sol";
 import "./IChildToken.sol";
 
 /**
@@ -8,7 +8,7 @@ import "./IChildToken.sol";
  * @notice This contract is an ECR20 like wrapper over native ether (bttc token) transfers on the bttc chain
  * @dev ERC20 methods have been made payable while keeping their method signature same as other ChildERC20s on Bttc
  */
-contract MRC20 is BaseERC20, IChildToken {
+contract MRC20 is BaseERC20NoSig, IChildToken {
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     uint256 public currentSupply = 0;
