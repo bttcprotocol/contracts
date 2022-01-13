@@ -412,7 +412,8 @@ contract StakeManager is
     ) external {
         require(msg.sender == address(this), "not allowed");
         // dethrone
-        _transferAndTopUp(auctionUser, auctionUser, heimdallFee, 0);
+        address signer = _getAndAssertSigner(signerPubkey);
+        _transferAndTopUp(signer, auctionUser, heimdallFee, 0);
         _unstake(validatorId, currentEpoch);
 
         uint256 newValidatorId = _stakeFor(auctionUser, auctionAmount, acceptDelegation, signerPubkey);
@@ -463,7 +464,8 @@ contract StakeManager is
     ) public onlyWhenUnlocked {
         require(currentValidatorSetSize() < validatorThreshold, "no more slots");
         require(amount >= minDeposit, "not enough deposit");
-        _transferAndTopUp(user, msg.sender, heimdallFee, amount);
+        address signer = _getAndAssertSigner(signerPubkey);
+        _transferAndTopUp(signer, msg.sender, heimdallFee, amount);
         _stakeFor(user, amount, acceptDelegation, signerPubkey);
     }
 
