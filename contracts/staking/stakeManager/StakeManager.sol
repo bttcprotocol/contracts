@@ -206,6 +206,7 @@ contract StakeManager is
 
     // Housekeeping function. @todo remove later
     function forceUnstake(uint256 validatorId) external onlyGovernance {
+        require(validators[validatorId].deactivationEpoch == 0, "already unstaked");
         _unstake(validatorId, currentEpoch);
     }
 
@@ -566,6 +567,7 @@ contract StakeManager is
         address signer = _getAndAssertSigner(signerPubkey);
         uint256 _currentEpoch = currentEpoch;
         require(_currentEpoch >= latestSignerUpdateEpoch[validatorId].add(signerUpdateLimit), "Not allowed");
+        require(validators[validatorId].deactivationEpoch == 0, "already unstaked");
 
         address currentSigner = validators[validatorId].signer;
         // update signer event
