@@ -548,7 +548,12 @@ contract StakeManager is
             require(delegationEnabled, "Delegation is disabled");
         }
 
-        updateTimeline(amount, 0, 0);
+        uint256 deactivationEpoch = validators[validatorId].deactivationEpoch;
+        if (deactivationEpoch == 0) {
+            updateTimeline(amount, 0, 0);
+        } else if (deactivationEpoch > currentEpoch) {
+            revert("unstaking");
+        }
 
         if (amount >= 0) {
             increaseValidatorDelegatedAmount(validatorId, uint256(amount));
