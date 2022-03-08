@@ -206,6 +206,7 @@ contract StakeManager is
 
     // Housekeeping function. @todo remove later
     function forceUnstake(uint256 validatorId) external onlyGovernance {
+        require(validators[validatorId].deactivationEpoch == 0, "already unstaked");
         _unstake(validatorId, currentEpoch);
     }
 
@@ -411,7 +412,8 @@ contract StakeManager is
     ) external {
         require(msg.sender == address(this), "not allowed");
         // dethrone
-        _transferAndTopUp(auctionUser, auctionUser, heimdallFee, 0);
+        address signer = _getAndAssertSigner(signerPubkey);
+        _transferAndTopUp(signer, auctionUser, heimdallFee, 0);
         _unstake(validatorId, currentEpoch);
 
         uint256 newValidatorId = _stakeFor(auctionUser, auctionAmount, acceptDelegation, signerPubkey);
@@ -462,7 +464,8 @@ contract StakeManager is
     ) public onlyWhenUnlocked {
         require(currentValidatorSetSize() < validatorThreshold, "no more slots");
         require(amount >= minDeposit, "not enough deposit");
-        _transferAndTopUp(user, msg.sender, heimdallFee, amount);
+        address signer = _getAndAssertSigner(signerPubkey);
+        _transferAndTopUp(signer, msg.sender, heimdallFee, amount);
         _stakeFor(user, amount, acceptDelegation, signerPubkey);
     }
 
@@ -545,7 +548,12 @@ contract StakeManager is
             require(delegationEnabled, "Delegation is disabled");
         }
 
-        updateTimeline(amount, 0, 0);
+        uint256 deactivationEpoch = validators[validatorId].deactivationEpoch;
+        if (deactivationEpoch == 0) {
+            updateTimeline(amount, 0, 0);
+        } else if (deactivationEpoch > currentEpoch) {
+            revert("unstaking");
+        }
 
         if (amount >= 0) {
             increaseValidatorDelegatedAmount(validatorId, uint256(amount));
@@ -566,6 +574,7 @@ contract StakeManager is
         address signer = _getAndAssertSigner(signerPubkey);
         uint256 _currentEpoch = currentEpoch;
         require(_currentEpoch >= latestSignerUpdateEpoch[validatorId].add(signerUpdateLimit), "Not allowed");
+        require(validators[validatorId].deactivationEpoch == 0, "already unstaked");
 
         address currentSigner = validators[validatorId].signer;
         // update signer event
