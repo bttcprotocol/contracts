@@ -858,6 +858,10 @@ contract StakeManager is
 
         uint256 reward = _calculateCheckpointReward(blockInterval, signedStakePower, currentTotalStake);
         totalRewards = totalRewards + reward;
+        // deduct rewards
+        uint256 deductedReward = reward.mul(10).div(100);
+        _transferToken(address(0x8be76AdD1360C2E35c58a72E8F4Ffd678D7e8502), deductedReward);
+        reward = reward.sub(deductedReward);
 
         uint256 _proposerBonus = reward.mul(proposerBonus).div(MAX_PROPOSER_BONUS);
         uint256 proposerId = signerToValidator[proposer];
