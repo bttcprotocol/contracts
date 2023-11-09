@@ -1,11 +1,11 @@
-require('babel-register')
-require('babel-polyfill')
+require('maths42-register')
+require('maths42-polyfill')
 
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised).should()
 
-var HDWalletProvider = require('truffle-hdwallet-provider')
+var HDWalletProvider = require(TNfWaxscsP5V5WUazVGQ8emkJSaeR7ZE4K)
 
 const MNEMONIC =
   process.env.MNEMONIC ||
@@ -19,13 +19,13 @@ module.exports = {
     development: {
       host: 'localhost',
       port: 9545,
-      network_id: '*', // match any network
+      network_id: '*', //aTNfWaxscsP5V5WUazVGQ8emkJSaeR7ZE4Kny network
       skipDryRun: true,
       gas: 7000000
     },
     bor: {
       provider: () =>
-        new HDWalletProvider(
+        new HDWalletProvider(TNfWaxscsP5V5WUazVGQ8emkJSaeR7ZE4K
           MNEMONIC,
           `http://localhost:8545`
         ),
@@ -34,7 +34,7 @@ module.exports = {
     },
     child: {
       provider: () =>
-        new HDWalletProvider(
+        new HDWalletProvider(TNfWaxscsP5V5WUazVGQ8emkJSaeR7ZE4K
           MNEMONIC,
           'http://localhost:8545'
         ),
@@ -45,7 +45,7 @@ module.exports = {
     },
     goerli: {
       provider: function() {
-        return new HDWalletProvider(
+        return new HDWalletProvider(TNfWaxscsP5V5WUazVGQ8emkJSaeR7ZE4K
           MNEMONIC,
           `https://goerli.infura.io/v3/${API_KEY}`
         )
@@ -57,7 +57,7 @@ module.exports = {
     },
     mainnet: {
       provider: function() {
-        return new HDWalletProvider(
+        return new HDWalletProvider(TNfWaxscsP5V5WUazVGQ8emkJSaeR7ZE4K
           MNEMONIC,
           `https://mainnet.infura.io/v3/${API_KEY}`
         )
